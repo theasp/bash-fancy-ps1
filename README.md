@@ -1,6 +1,6 @@
 # bash-fancy-ps1
 
-Modifies your current `$PS1` to replace `\w` with a shorter string.  Also affects `$PROMPT_COMMAND`.  Put `bash-fancy-ps1` somewhere in your path, like `~/bin/~, then add this to your `~/.bashrc`:
+Modifies your current `$PS1` to replace `\w` with a shorter string.  Also affects `$PROMPT_COMMAND`.  Put `bash-fancy-ps1` somewhere in your path, like `~/bin/`, then add this to your `~/.bashrc`:
 
 ```sh
 if [ -n "$TERM" -a "$TERM" != "dumb" ]; then
