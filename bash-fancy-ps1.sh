@@ -75,7 +75,7 @@ PROMPT_COMMAND='FANCYPS1_CWD=$(makeFANCYPS1_CWD)'
 PS1="$(echo -n "$PS1" | sed -e 's/\\w/${FANCYPS1_CWD}/')"
 
 case $TERM in
-    screen*|xterm*)
+    screen*|xterm*|tmux*)
         PROMPT_COMMAND=${PROMPT_COMMAND}';echo -ne "\033]2;${USER}@${HOSTNAME}:${FANCYPS1_CWD}\007"'
         ;;
 esac
