@@ -1,8 +1,22 @@
-makeFANCYPS1_CWD() {
+#!/bin/bash
+
+case $(locale charmap) in
+  UTF-8)
+    FANCYPS1_FILL="$(echo -ne '\u2736')" # 2736 = ✷  279d = ➝  2026 = …
+    ;;
+
+  *)
+    FANCYPS1_FILL="..."
+    ;;
+esac
+
+FANCYPS1_CWDLENGTH=30
+
+function _fancyps1_cwd {
   FANCYPS1_CWDLENGTH=${FANCYPS1_CWDLENGTH:=30}
   FANCYPS1_FILL=${FANCYPS1_FILL:=...}
   FANCYPS1_DYNAMIC=${FANCYPS1_DYNAMIC:=0}
-    
+
   if [ "$FANCYPS1_DYNAMIC" != 0 ]; then
     FANCYPS1_CWDLENGTH=$(( $COLUMNS * $FANCYPS1_DYNAMIC / 100 ))
   fi
@@ -21,8 +35,8 @@ makeFANCYPS1_CWD() {
       WORK=${WORK:$len}
 
       if [ "$element" != "" ]; then
-	COUNT=$(($COUNT + 1))
-	DIRS[$COUNT]=$element
+        COUNT=$(($COUNT + 1))
+        DIRS[$COUNT]=$element
       fi
     done
 
@@ -57,20 +71,29 @@ makeFANCYPS1_CWD() {
   echo $DIR
 }
 
-case $(locale charmap) in
-  UTF-8)
-    FANCYPS1_FILL="$(echo -ne '\u2736')" # 2736 = ✷  279d = ➝  2026 = …
-    ;;
-    
-  *)
-    FANCYPS1_FILL="..."
-    ;;
-esac
+function _fancyps1_prompt {
+  FANCYPS1_PROMPT_CMD=${FANCYPS1_PROMPT_CMD:="sudo -ln true"}
+  FANCYPS1_PROMPT_CMD_TRUE=${FANCYPS1_PROMPT_CMD_TRUE:-"#"}
+  FANCYPS1_PROMPT_CMD_FALSE=${FANCYPS1_PROMPT_CMD_FALSE:-"$"}
 
-FANCYPS1_CWDLENGTH=30
+  if $FANCYPS1_PROMPT_CMD > /dev/null 2>&1; then
+    echo -ne $FANCYPS1_PROMPT_CMD_TRUE
+  else
+    echo -ne $FANCYPS1_PROMPT_CMD_FALSE
+  fi
+}
 
-PROMPT_COMMAND='FANCYPS1_CWD=$(makeFANCYPS1_CWD)'
-PS1="$(echo -n "$PS1" | sed -e 's/\\w/${FANCYPS1_CWD}/')"
+function _fancyps1 {
+  FANCYPS1_CWD=$(_fancyps1_cwd)
+  FANCYPS1_PROMPT=$(_fancyps1_prompt)
+
+  PS1="$FANCYPS1"
+  PS1=${PS1//\\\$/${FANCYPS1_PROMPT}}
+  PS1=${PS1//\\w/${FANCYPS1_CWD}}
+}
+
+FANCYPS1=${PS1:-"\h:\w\$ "}
+PROMPT_COMMAND='_fancyps1'
 
 case $TERM in
   screen*|xterm*|tmux*)
