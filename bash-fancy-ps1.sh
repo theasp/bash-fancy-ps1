@@ -30,8 +30,6 @@ makeFANCYPS1_CWD() {
       START=${DIRS[1]}
       END=${DIRS[$COUNT]}
 
-      i=1
-
       DIR="${START}${FANCYPS1_FILL}/${END}"
 
       i=1
