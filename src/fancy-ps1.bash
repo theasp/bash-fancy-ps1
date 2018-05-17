@@ -1,18 +1,39 @@
 #!/bin/bash
 
-case $(locale charmap) in
-  UTF-8)
-    FANCYPS1_FILL="$(echo -ne '\u2736')" # 2736 = ✷  279d = ➝  2026 = …
-    ;;
+function __fancy_ps1__init {
+  if [[ $__FANCY_PS1__INIT != true ]]; then
+    FANCYPS1_CWDLENGTH=30
+    FANCYPS1=${PS1:-"\h:\w\$ "}
 
-  *)
-    FANCYPS1_FILL="..."
-    ;;
-esac
+    case $(locale charmap) in
+      # 2736 = ✷  279d = ➝  2026 = …
+      UTF-8) FANCYPS1_FILL=$'\u2736' ;;
+      *)     FANCYPS1_FILL="..." ;;
+    esac
 
-FANCYPS1_CWDLENGTH=30
+    precmd_functions+=(__fancy_ps1__ps1_precmd)
 
-function _fancyps1_cwd {
+    case $TERM in
+      screen*|xterm*|tmux*)
+        precmd_functions+=(__fancy_ps1__xterm_precmd)
+        preexec_functions+=(__fancy_ps1__xterm_preexec)
+        ;;
+    esac
+
+    __FANCY_PS1__INIT=true
+  fi
+}
+
+function __fancy_ps1__xterm_precmd {
+  echo -ne "\033]2;${USER}@${HOSTNAME}:${FANCYPS1_CWD}\007"
+}
+
+function __fancy_ps1__xterm_preexec {
+  read cmd <<<"$1"
+  echo -ne "\033]2;${USER}@${HOSTNAME}:${FANCYPS1_CWD} ${cmd##*/}\007"
+}
+
+function __fancy_ps1__cwd {
   FANCYPS1_CWDLENGTH=${FANCYPS1_CWDLENGTH:=30}
   FANCYPS1_FILL=${FANCYPS1_FILL:=...}
   FANCYPS1_DYNAMIC=${FANCYPS1_DYNAMIC:=0}
@@ -71,7 +92,7 @@ function _fancyps1_cwd {
   echo $DIR
 }
 
-function _fancyps1_prompt {
+function __fancy_ps1__prompt {
   FANCYPS1_PROMPT_CMD=${FANCYPS1_PROMPT_CMD:="test $UID = 0"}
   FANCYPS1_PROMPT_CMD_TRUE=${FANCYPS1_PROMPT_CMD_TRUE:-"#"}
   FANCYPS1_PROMPT_CMD_FALSE=${FANCYPS1_PROMPT_CMD_FALSE:-"$"}
@@ -83,20 +104,13 @@ function _fancyps1_prompt {
   fi
 }
 
-function _fancyps1 {
-  FANCYPS1_CWD=$(_fancyps1_cwd)
-  FANCYPS1_PROMPT=$(_fancyps1_prompt)
+function __fancy_ps1__ps1_precmd {
+  FANCYPS1_CWD=$(__fancy_ps1__cwd)
+  FANCYPS1_PROMPT=$(__fancy_ps1__prompt)
 
   PS1="$FANCYPS1"
   PS1=${PS1//\\\$/${FANCYPS1_PROMPT}}
   PS1=${PS1//\\w/${FANCYPS1_CWD}}
 }
 
-FANCYPS1=${PS1:-"\h:\w\$ "}
-PROMPT_COMMAND='_fancyps1'
-
-case $TERM in
-  screen*|xterm*|tmux*)
-    PROMPT_COMMAND=${PROMPT_COMMAND}';echo -ne "\033]2;${USER}@${HOSTNAME}:${FANCYPS1_CWD}\007"'
-    ;;
-esac
+__fancy_ps1__init
