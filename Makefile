@@ -9,11 +9,9 @@ fancy-ps1.bash: src/fancy-ps1.bash deps/bash-preexec/bash-preexec.sh
 	cat $^ > $@
 	chmod +x fancy-ps1.bash
 
-deps: deps/bash-preexec
-
-deps/bash-preexec:
-	git submodule update --init deps/bash-preexec
+deps: deps/bash-preexec/bash-preexec.sh
 
 deps/bash-preexec/bash-preexec.sh: deps/bash-preexec
+	git submodule update --init deps/bash-preexec
 
 .PHONY: all deps clean
